@@ -7,7 +7,7 @@
  * Author: Eric Binnion
  * Author URI: http://manofhustle.com
  * License: GPLv2 or later
- * Text Domain: wp-logger
+ * Text Domain: cw-slideshow
  */
 
 class CW_Slideshow {
