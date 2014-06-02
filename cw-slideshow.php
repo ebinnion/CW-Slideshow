@@ -81,7 +81,7 @@ class CW_Slideshow {
 				        array(
 				            'name' => 'Image Caption',
 				            'id'   => 'image_caption',
-				            'type' => 'text',
+				            'type' => 'textarea_small',
 				        ),
 				    ),
 				),
