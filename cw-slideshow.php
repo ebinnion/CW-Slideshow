@@ -22,8 +22,10 @@ class CW_Slideshow {
 
 		$this->args = wp_parse_args( $args, $defaults );
 
-		add_action( 'init',           array( $this, 'init' ) );
-		add_filter( 'cmb_meta_boxes', array( $this, 'init_meta_boxes' ) );
+		add_action( 'init',                                    array( $this, 'init' ), 1 );
+		add_filter( 'cmb_meta_boxes',                          array( $this, 'init_meta_boxes' ) );
+		add_filter( 'manage_cw_slideshow_posts_columns',       array( $this, 'add_slide_columns' ) );
+		add_action( "manage_cw_slideshow_posts_custom_column", array($this, "custom_columns"), 10, 2 );
 	}
 
 	/**
@@ -89,6 +91,19 @@ class CW_Slideshow {
 		);
 
 		return $meta_boxes;
+	}
+
+	function add_slide_columns( $cols ) {
+		return array(
+			'cb' => '<input type="checkbox" />',
+    		'title' => 'Title',
+    		'shortcode' => esc_html__( 'Shortcode', 'cw-slideshow' ),
+    		'date' => 'Date',
+		);
+	}
+
+	function custom_columns( $column, $post_id ) {
+		echo '[cw-slideshow id="'.$post_id.'"]';
 	}
 
 	function generate_slideshow( $slideshow_id, $args = array() ) {
