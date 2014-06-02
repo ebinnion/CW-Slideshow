@@ -25,7 +25,8 @@ class CW_Slideshow {
 		add_action( 'init',                                    array( $this, 'init' ), 1 );
 		add_filter( 'cmb_meta_boxes',                          array( $this, 'init_meta_boxes' ) );
 		add_filter( 'manage_cw_slideshow_posts_columns',       array( $this, 'add_slide_columns' ) );
-		add_action( "manage_cw_slideshow_posts_custom_column", array($this, "custom_columns"), 10, 2 );
+		add_action( 'manage_cw_slideshow_posts_custom_column', array($this, 'custom_columns' ), 10, 2 );
+		add_shortcode( 'cw-slideshow', array( $this, 'do_cw_slideshow' ) );
 	}
 
 	/**
@@ -95,15 +96,29 @@ class CW_Slideshow {
 
 	function add_slide_columns( $cols ) {
 		return array(
-			'cb' => '<input type="checkbox" />',
-    		'title' => 'Title',
+			'cb'        => '<input type="checkbox" />',
+    		'title'     => 'Title',
     		'shortcode' => esc_html__( 'Shortcode', 'cw-slideshow' ),
-    		'date' => 'Date',
+    		'date'      => 'Date',
 		);
 	}
 
 	function custom_columns( $column, $post_id ) {
 		echo '[cw-slideshow id="'.$post_id.'"]';
+	}
+
+	function do_cw_slideshow( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'id' => 0
+			),
+			$atts,
+			'cw-slideshow'
+		);
+
+		if( $atts['id'] > 0 ) {
+			return $this->generate_slideshow( $atts['id'] );
+		}
 	}
 
 	function generate_slideshow( $slideshow_id, $args = array() ) {
