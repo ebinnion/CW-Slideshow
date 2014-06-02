@@ -69,10 +69,9 @@ class CW_Slideshow {
 				            // 'repeatable' => true, // Repeatable fields are supported w/in repeatable groups (for most types)
 				        ),
 				        array(
-				            'name' => 'Description',
-				            'description' => 'Write a short caption for this slide.',
-				            'id'   => 'description',
-				            'type' => 'textarea_small',
+				            'name' => 'Link',
+				            'id'   => 'link',
+				            'type' => 'text_url',
 				        ),
 				        array(
 				            'name' => 'Image',
