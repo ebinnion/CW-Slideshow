@@ -36,7 +36,7 @@ class CW_Slideshow {
 			require_once( 'lib/metabox/init.php' );
 		}
 
-		// require_once( 'lib/aq_resizer.php' );
+		require_once( 'lib/aq_resizer.php' );
 	}
 
 	function init_meta_boxes( $meta_boxes ) {
