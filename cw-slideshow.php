@@ -23,10 +23,13 @@ class CW_Slideshow {
 		$this->args = wp_parse_args( $args, $defaults );
 
 		add_action( 'init',                                    array( $this, 'init' ), 1 );
+		add_action( 'manage_cw_slideshow_posts_custom_column', array( $this, 'custom_columns' ), 10, 2 );
+		add_action( 'wp_enqueue_scripts',                      array( $this, 'add_nivo_scripts' ) );
+
 		add_filter( 'cmb_meta_boxes',                          array( $this, 'init_meta_boxes' ) );
 		add_filter( 'manage_cw_slideshow_posts_columns',       array( $this, 'add_slide_columns' ) );
-		add_action( 'manage_cw_slideshow_posts_custom_column', array($this, 'custom_columns' ), 10, 2 );
-		add_shortcode( 'cw-slideshow', array( $this, 'do_cw_slideshow' ) );
+
+		add_shortcode( 'cw-slideshow',                         array( $this, 'do_cw_slideshow' ) );
 	}
 
 	/**
@@ -121,51 +124,72 @@ class CW_Slideshow {
 		}
 	}
 
+	function add_nivo_scripts() {
+		wp_enqueue_script(
+			'nivo_slider',
+			plugins_url( 'js/jquery.nivo.slider.pack.js', __FILE__ ),
+			array( 'jquery' )
+		);
+
+		wp_enqueue_script(
+			'cw_slideshow',
+			plugins_url( 'js/cw_slideshow.js', __FILE__ ),
+			array( 'jquery', 'nivo_slider' )
+		);
+
+		wp_enqueue_style(
+			'nivo_slider',
+			plugins_url( 'css/nivo-slider.css', __FILE__ )
+		);
+	}
+
 	function generate_slideshow( $slideshow_id, $args = array() ) {
-		echo '<div id="cw-slider" class="nivoSlider">';
+		$entries = get_post_meta( $slideshow_id, '_cw_slides_slideshow', true );
 
-			$entries = get_post_meta( $slideshow_id, '_cw_slides_slideshow', true );
-			$captions = '';
+		if ( ! empty( $entries ) ) {
+			echo '<div class="cw-slider nivoSlider">';
+				$captions = '';
 
-			foreach ( (array) $entries as $key => $entry ) {
+				foreach ( (array) $entries as $key => $entry ) {
 
-				// Initialize all values to empty string
-				$img = $title = $link = $caption = '';
+					// Initialize all values to empty string
+					$img = $title = $link = $caption = '';
 
-				if ( isset( $entry['title'] ) ) {
-					$title = $entry['title'];
-				}
+					if ( isset( $entry['title'] ) ) {
+						$title = $entry['title'];
+					}
 
-				if ( isset( $entry['link'] ) ) {
-					$link = $entry['link'];
-				}
+					if ( isset( $entry['link'] ) ) {
+						$link = $entry['link'];
+					}
 
-				if ( isset( $entry['image'] ) ) {
-					$img = wp_get_attachment_image_src( $entry['image'], 'full' );
+					if ( isset( $entry['image'] ) ) {
+						$img = $entry['image'];
 
-					if ( false != $this->args['resize'] ) {
-						$img = aq_resize( $img, $this->args['resize']['width'], $this->args['resize']['height'], true, true, true );
+						if ( false != $this->args['resize'] ) {
+							$img = aq_resize( $img, $this->args['resize']['width'], $this->args['resize']['height'], true, true, true );
+						}
+					}
+
+					if( isset( $entry['image_caption'] ) ) {
+						$caption = $entry['image_caption'];
+					}
+
+					$caption = isset( $entry['image_caption'] ) ? wpautop( $entry['image_caption'] ) : '';
+
+					if ( ! empty( $caption ) ) {
+						echo "<img src='{$img}' alt='{$title}' title='#slide-{$key}'>";
+						$captions .= "<div class='nivo-html-caption' id='slide-{$key}'><h3>{$title}</h3> {$caption}</div>";
+					} else {
+						echo "<img src='{$img}' alt='{$title}'>";
 					}
 				}
 
-				if( isset( $entry['image_caption'] ) ) {
-					$caption = $entry['image_caption'];
-				}
+			echo '</div>';
 
-				$caption = isset( $entry['image_caption'] ) ? wpautop( $entry['image_caption'] ) : '';
-
-				if ( ! empty( $caption ) ) {
-					echo "<img src='{$img}' alt='{$title}' title='#slide-{$key}'>";
-					$captions .= "<div class='nivo-html-caption' id='slide-{$key}'><h3>{$title}</h3> {$caption}</div>";
-				} else {
-					echo "<img src='{$img}' alt='{$title}'>";
-				}
+			if( ! empty( $captions ) ) {
+				echo $captions;
 			}
-
-		echo '</div>';
-
-		if( ! empty( $captions ) ) {
-			echo $captions;
 		}
 	}
 
