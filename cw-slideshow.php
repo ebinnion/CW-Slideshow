@@ -12,7 +12,15 @@
 
 class CW_Slideshow {
 
-	function __construct() {
+	function __construct( $args = array() ) {
+
+		$defaults = array(
+			'enqueue_css' => true,
+			'enqueue_js'  => true,
+			'resize'      => false,
+		);
+
+		$this->args = wp_parse_args( $args, $defaults );
 
 		add_action( 'init',           array( $this, 'init' ) );
 		add_filter( 'cmb_meta_boxes', array( $this, 'init_meta_boxes' ) );
