@@ -91,6 +91,54 @@ class CW_Slideshow {
 		return $meta_boxes;
 	}
 
+	function generate_slideshow( $slideshow_id, $args = array() ) {
+		echo '<div id="cw-slider" class="nivoSlider">';
+
+			$entries = get_post_meta( $slideshow_id, '_cw_slides_slideshow', true );
+			$captions = '';
+
+			foreach ( (array) $entries as $key => $entry ) {
+
+				// Initialize all values to empty string
+				$img = $title = $link = $caption = '';
+
+				if ( isset( $entry['title'] ) ) {
+					$title = $entry['title'];
+				}
+
+				if ( isset( $entry['link'] ) ) {
+					$link = $entry['link'];
+				}
+
+				if ( isset( $entry['image'] ) ) {
+					$img = wp_get_attachment_image_src( $entry['image'], 'full' );
+
+					if ( false != $this->args['resize'] ) {
+						$img = aq_resize( $img, $this->args['resize']['width'], $this->args['resize']['height'], true, true, true );
+					}
+				}
+
+				if( isset( $entry['image_caption'] ) ) {
+					$caption = $entry['image_caption'];
+				}
+
+				$caption = isset( $entry['image_caption'] ) ? wpautop( $entry['image_caption'] ) : '';
+
+				if ( ! empty( $caption ) ) {
+					echo "<img src='{$img}' alt='{$title}' title='#slide-{$key}'>";
+					$captions .= "<div class='nivo-html-caption' id='slide-{$key}'><h3>{$title}</h3> {$caption}</div>";
+				} else {
+					echo "<img src='{$img}' alt='{$title}'>";
+				}
+			}
+
+		echo '</div>';
+
+		if( ! empty( $captions ) ) {
+			echo $captions;
+		}
+	}
+
 	/**
 	 * This method is used to init custom post types used for the Rider Raider Sports Site
 	 */
@@ -119,7 +167,6 @@ class CW_Slideshow {
 
 		register_post_type( 'cw_slideshow', $field_args );
 	}
-
 }
 
 new CW_Slideshow();
