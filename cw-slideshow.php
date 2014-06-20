@@ -12,15 +12,23 @@
 
 class CW_Slideshow {
 
-	function __construct( $args = array() ) {
+	function __construct( ) {
 
 		$defaults = array(
 			'enqueue_css' => true,
 			'enqueue_js'  => true,
-			'resize'      => false,
+			'width'       => 960,
+			'height'      => 300,
+			'crop'        => true,
+			'upscale'     => true,
+			'theme'       => plugins_url( 'css/themes/default/default.css', __FILE__ )
 		);
 
-		$this->args = wp_parse_args( $args, $defaults );
+		/**
+		 * Allows developers to change the defaults for CW Slideshow. Should be
+		 * useful for theme developers who want to quickly set defaults sitewide.
+		 */
+		$this->args = wp_parse_args( apply_filters( 'cw_slideshow_args', array() ), $defaults );
 
 		add_action( 'init',                                    array( $this, 'init' ), 1 );
 		add_action( 'manage_cw_slideshow_posts_custom_column', array( $this, 'custom_columns' ), 10, 2 );
@@ -119,9 +127,7 @@ class CW_Slideshow {
 			'cw-slideshow'
 		);
 
-		if( $atts['id'] > 0 ) {
-			return $this->generate_slideshow( $atts['id'] );
-		}
+		return $this->generate_slideshow( $atts['id'] );
 	}
 
 	function add_nivo_scripts() {
@@ -131,66 +137,102 @@ class CW_Slideshow {
 			array( 'jquery' )
 		);
 
-		wp_enqueue_script(
+		wp_register_script(
 			'cw_slideshow',
 			plugins_url( 'js/cw_slideshow.js', __FILE__ ),
 			array( 'jquery', 'nivo_slider' )
 		);
 
+		$nivo_args = array(
+			'effect'           => 'random',
+			'slices'           => 15,
+			'boxCols'          => 8,
+			'boxRows'          => 4,
+			'animSpeed'        => 500,
+			'pauseTime'        => 3000,
+			'directionNav'     => true,
+			'controlNav'       => true,
+			'controlNavThumbs' => false,
+			'pauseOnHover'     => true,
+			'manualAdvance'    => false,
+			'prevText'         => 'Prev',
+			'nextText'         => 'Next',
+			'randomStart'      => false
+		);
+
+		wp_localize_script(
+			'cw_slideshow',
+			'cw_slideshow_args',
+			apply_filters( 'cw_slider_js_args', array() )
+		);
+
+		wp_enqueue_script( 'cw_slideshow' );
+
+
 		wp_enqueue_style(
-			'nivo_slider',
+			'nivo-slider',
 			plugins_url( 'css/nivo-slider.css', __FILE__ )
+		);
+
+		wp_enqueue_style(
+			'cw-nivo-theme',
+			$this->args['theme'],
+			array( 'nivo-slider' )
 		);
 	}
 
-	function generate_slideshow( $slideshow_id, $args = array() ) {
-		$entries = get_post_meta( $slideshow_id, '_cw_slides_slideshow', true );
+	function generate_slideshow( $slideshow_id, $return = false ) {
+		if ( $slideshow_id > 0 ) {
+			$entries = get_post_meta( $slideshow_id, '_cw_slides_slideshow', true );
+		}
 
 		if ( ! empty( $entries ) ) {
-			echo '<div class="cw-slider nivoSlider">';
-				$captions = '';
+			return $this->get_slider_with_theme( $entries );
+		}
+	}
 
-				foreach ( (array) $entries as $key => $entry ) {
+	private function get_slider_with_theme( &$entries ) {
+		$slider = '<div class="slider-wrapper theme-default">';
+			$slider .= '<div class="ribbon"></div>';
+			$slider .= $this->get_slider_content( $entries );
+		$slider .= '</div>';
 
-					// Initialize all values to empty string
-					$img = $title = $link = $caption = '';
+		return $slider;
+	}
 
-					if ( isset( $entry['title'] ) ) {
-						$title = $entry['title'];
-					}
+	private function get_slider_content( &$entries  ) {
+		$slider = '<div class="cw-slider nivoSlider">';
+			$captions = '';
 
-					if ( isset( $entry['link'] ) ) {
-						$link = $entry['link'];
-					}
+			foreach ( (array) $entries as $key => $entry ) {
 
-					if ( isset( $entry['image'] ) ) {
-						$img = $entry['image'];
+				$header = isset( $entry['title'] ) ? "<h3>{$entry['title']}</h3>" : '';
+				$alt = isset( $entry['title'] ) ? "alt='{$entry['title']}'" : '';
+				$link = isset( $entry['link'] ) ? $entry['link'] : '';
+				$caption = isset( $entry['entry_caption'] ) ? $entry['image_caption'] : '';
 
-						if ( false != $this->args['resize'] ) {
-							$img = aq_resize( $img, $this->args['resize']['width'], $this->args['resize']['height'], true, true, true );
-						}
-					}
-
-					if( isset( $entry['image_caption'] ) ) {
-						$caption = $entry['image_caption'];
-					}
-
-					$caption = isset( $entry['image_caption'] ) ? wpautop( $entry['image_caption'] ) : '';
-
-					if ( ! empty( $caption ) ) {
-						echo "<img src='{$img}' alt='{$title}' title='#slide-{$key}'>";
-						$captions .= "<div class='nivo-html-caption' id='slide-{$key}'><h3>{$title}</h3> {$caption}</div>";
-					} else {
-						echo "<img src='{$img}' alt='{$title}'>";
-					}
+				$img = '';
+				if ( isset( $entry['image'] ) ) {
+					$img = aq_resize( $entry['image'], $this->args['width'], $this->args['height'], $this->args['crop'], true, $this->args['upscale'] );
 				}
 
-			echo '</div>';
-
-			if( ! empty( $captions ) ) {
-				echo $captions;
+				if( ! empty( $img ) ) {
+					if ( ! empty( $caption ) ) {
+						$slider .= "<img src='{$img}' {$alt} title='#slide-{$key}'>";
+						$captions .= "<div class='nivo-html-caption' id='slide-{$key}'>{$header} {$caption}</div>";
+					} else {
+						$slider .= "<img src='{$img}' {$alt}>";
+					}
+				}
 			}
+
+		$slider .= '</div>';
+
+		if( ! empty( $captions ) ) {
+			$slider .= $captions;
 		}
+
+		return $slider;
 	}
 
 	/**
@@ -223,4 +265,10 @@ class CW_Slideshow {
 	}
 }
 
-new CW_Slideshow();
+$cw_slideshow = new CW_Slideshow();
+
+function get_cw_slideshow( $slideshow_id ) {
+	global $cw_slideshow;
+
+	echo $cw_slideshow->generate_slideshow( $slideshow_id );
+}
