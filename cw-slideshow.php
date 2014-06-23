@@ -21,7 +21,26 @@ class CW_Slideshow {
 			'height'      => 300,
 			'crop'        => true,
 			'upscale'     => true,
-			'theme'       => plugins_url( 'css/themes/default/default.css', __FILE__ )
+			'theme'       => plugins_url( 'css/themes/default/default.css', __FILE__ ),
+			'nivo_args'   => array()
+		);
+
+		// These are the default slider settings for Nivo Slider.
+		$this->nivo_defaults = array(
+			'effect'           => 'random',
+			// 'slices'           => 15,
+			// 'boxCols'          => 8,
+			// 'boxRows'          => 4,
+			'animSpeed'        => 500,
+			'pauseTime'        => 3000,
+			// 'directionNav'     => true,
+			// 'controlNav'       => true,
+			// 'controlNavThumbs' => false,
+			// 'pauseOnHover'     => true,
+			// 'manualAdvance'    => false,
+			// 'prevText'         => 'Prev',
+			// 'nextText'         => 'Next',
+			// 'randomStart'      => false
 		);
 
 		/**
@@ -57,8 +76,8 @@ class CW_Slideshow {
 		$prefix = '_cw_slides_';
 
 		$meta_boxes[] = array(
-			'id'         => 'test_metabox',
-			'title'      => 'Slideshow Information',
+			'id'         => 'cw_slides_metabox',
+			'title'      => 'Slides',
 			'pages'      => array('cw_slideshow'), // post type
 			'context'    => 'normal',
 			'priority'   => 'high',
@@ -102,6 +121,38 @@ class CW_Slideshow {
 			),
 		);
 
+		$meta_boxes[] = array(
+			'id'         => 'slider_settings',
+			'title'      => 'Slideshow Settings',
+			'pages'      => array('cw_slideshow'), // post type
+			'context'    => 'normal',
+			'priority'   => 'high',
+			'show_names' => true, // Show field names on the left
+			'fields'     => array(
+				array(
+				    'name' => 'Effect',
+				    'desc' => 'Specify sets like: fold, fade, and sliceDown.',
+				    'default' => $this->nivo_defaults['effect'],
+				    'id' => $prefix . 'effect',
+				    'type' => 'text'
+				),
+				array(
+				    'name' => 'Animation Speed',
+				    'desc' => 'Slide transition speed.',
+				    'default' => $this->nivo_defaults['animSpeed'],
+				    'id' => $prefix . 'animSpeed',
+				    'type' => 'text'
+				),
+				array(
+				    'name' => 'Pause Time',
+				    'desc' => 'How long each slide will show.',
+				    'default' => $this->nivo_defaults['pauseTime'],
+				    'id' => $prefix . 'pauseTime',
+				    'type' => 'text'
+				),
+			),
+		);
+
 		return $meta_boxes;
 	}
 
@@ -131,6 +182,8 @@ class CW_Slideshow {
 	}
 
 	function add_nivo_scripts() {
+		global $post;
+
 		wp_enqueue_script(
 			'nivo_slider',
 			plugins_url( 'js/jquery.nivo.slider.pack.js', __FILE__ ),
@@ -144,30 +197,28 @@ class CW_Slideshow {
 		);
 
 		$nivo_args = array(
-			'effect'           => 'random',
-			'slices'           => 15,
-			'boxCols'          => 8,
-			'boxRows'          => 4,
-			'animSpeed'        => 500,
-			'pauseTime'        => 3000,
-			'directionNav'     => true,
-			'controlNav'       => true,
-			'controlNavThumbs' => false,
-			'pauseOnHover'     => true,
-			'manualAdvance'    => false,
-			'prevText'         => 'Prev',
-			'nextText'         => 'Next',
-			'randomStart'      => false
+			'effect'    => get_post_meta( $post->ID, '_cw_slides_effect', true ),
+			'animSpeed' => get_post_meta( $post->ID, '_cw_slides_animSpeed', true ),
+			'pauseTime' => get_post_meta( $post->ID, '_cw_slides_pauseTime', true ),
 		);
 
-		wp_localize_script(
-			'cw_slideshow',
-			'cw_slideshow_args',
-			apply_filters( 'cw_slider_js_args', array() )
-		);
+		if ( empty( $nivo_args['effect'] ) ) {
+			unset( $nivo_args['effect'] );
+		}
+
+		if ( empty( $nivo_args['animSpeed'] ) ) {
+			unset( $nivo_args['animSpeed'] );
+		}
+
+		if ( empty( $nivo_args['pauseTime'] ) ) {
+			unset( $nivo_args['pauseTime'] );
+		}
+
+		$slider_settings = wp_parse_args( $nivo_args, $this->nivo_defaults );
+
+		wp_localize_script( 'cw_slideshow', 'cw_nivo_slider_args', $slider_settings );
 
 		wp_enqueue_script( 'cw_slideshow' );
-
 
 		wp_enqueue_style(
 			'nivo-slider',

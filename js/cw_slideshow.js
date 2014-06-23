@@ -1,3 +1,3 @@
 jQuery(document).ready(function($){
-	$('.cw-slider').nivoSlider( cw_slideshow_args );
+	$('.cw-slider').nivoSlider( cw_nivo_slider_args );
 });
