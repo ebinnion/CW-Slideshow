@@ -252,6 +252,7 @@ class CW_Slideshow {
 				'not_found'          => 'No slideshows found',
 				'not_found_in_trash' => 'No slideshows found in trash'
 			),
+			'menu_icon'       => 'dashicons-format-gallery',
 			'public'          => true,
 			'show_ui'         => true,
 			'capability_type' => 'post',
