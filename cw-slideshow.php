@@ -108,7 +108,7 @@ class CW_Slideshow {
 	function add_slide_columns( $cols ) {
 		return array(
 			'cb'        => '<input type="checkbox" />',
-    		'title'     => 'Title',
+    		'title'     => esc_html__( 'Title', 'cw-slideshow' ),
     		'shortcode' => esc_html__( 'Shortcode', 'cw-slideshow' ),
     		'date'      => 'Date',
 		);
