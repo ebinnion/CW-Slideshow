@@ -14,7 +14,7 @@ class CW_Slideshow {
 
 	function __construct( ) {
 
-		$defaults = array(
+		$this->defaults = array(
 			'enqueue_css' => true,
 			'enqueue_js'  => true,
 			'width'       => 960,
@@ -24,12 +24,6 @@ class CW_Slideshow {
 			'theme'       => plugins_url( 'css/themes/default/default.css', __FILE__ ),
 			'nivo_args'   => array()
 		);
-
-		/**
-		 * Allows developers to change the defaults for CW Slideshow. Should be
-		 * useful for theme developers who want to quickly set defaults sitewide.
-		 */
-		$this->args = wp_parse_args( apply_filters( 'cw_slideshow_args', array() ), $defaults );
 
 		add_action( 'init',                                    array( $this, 'init' ), 1 );
 		add_action( 'manage_cw_slideshow_posts_custom_column', array( $this, 'custom_columns' ), 10, 2 );
@@ -45,6 +39,13 @@ class CW_Slideshow {
 	 * This method is called on the init WordPress action
 	 */
 	function init() {
+
+		/**
+		 * Allows developers to change the defaults for CW Slideshow. Should be
+		 * useful for theme developers who want to quickly set defaults sitewide.
+		 */
+		$this->args = wp_parse_args( apply_filters( 'cw_slideshow_args', array() ), $this->defaults );
+
 		$this->init_cpts();
 
 		if( ! class_exists( 'cmb_Meta_Box' ) ) {
@@ -132,8 +133,6 @@ class CW_Slideshow {
 	}
 
 	function add_nivo_scripts() {
-		global $post;
-
 		wp_enqueue_script(
 			'nivo_slider',
 			plugins_url( 'js/jquery.nivo.slider.pack.js', __FILE__ ),
@@ -146,8 +145,8 @@ class CW_Slideshow {
 			array( 'jquery', 'nivo_slider' )
 		);
 
-		if ( ! empty( $this->args->nivo_args ) ) {
-			wp_localize_script( 'cw_slideshow', 'cw_nivo_slider_args', $this->args->nivo_args );
+		if ( ! empty( $this->args['nivo_args'] ) ) {
+			wp_localize_script( 'cw_slideshow', 'cw_nivo_slider_args', $this->args['nivo_args'] );
 		}
 
 		wp_enqueue_script( 'cw_slideshow' );
