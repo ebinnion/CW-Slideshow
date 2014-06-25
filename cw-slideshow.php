@@ -191,7 +191,7 @@ class CW_Slideshow {
 				$header = isset( $entry['title'] ) ? "<h3>{$entry['title']}</h3>" : '';
 				$alt = isset( $entry['title'] ) ? "alt='{$entry['title']}'" : '';
 				$link = isset( $entry['link'] ) ? $entry['link'] : '';
-				$caption = isset( $entry['entry_caption'] ) ? $entry['image_caption'] : '';
+				$caption = isset( $entry['image_caption'] ) ? $entry['image_caption'] : '';
 
 				$img = '';
 				if ( isset( $entry['image'] ) ) {
@@ -199,7 +199,7 @@ class CW_Slideshow {
 				}
 
 				if( ! empty( $img ) ) {
-					if ( ! empty( $caption ) ) {
+					if ( ! empty( $caption ) || ! empty( $header ) ) {
 						$slider .= "<img src='{$img}' {$alt} title='#slide-{$key}'>";
 						$captions .= "<div class='nivo-html-caption' id='slide-{$key}'>{$header} {$caption}</div>";
 					} else {
